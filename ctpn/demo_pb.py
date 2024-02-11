@@ -12,7 +12,7 @@ import tensorflow.compat.v1 as tf
 tf.disable_v2_behavior()
 from tensorflow.python.platform import gfile
 from PIL import Image
-#import pytesseract
+import pytesseract
 
 #pytesseract.pytesseract.tesseract_cmd = r'C:\Users\josep\AppData\Local\Programs\Tesseract-OCR\tesseract.exe'
 
