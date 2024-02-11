@@ -15,10 +15,10 @@ from PIL import Image
 import pytesseract
 import symspellpy
 # some things for symspellpy. can tweak.
-maxEditDistanceLookup = 2
-suggestionVerbosity = symspellpy.Verbosity.CLOSEST
+maxEditDistanceLookup = 1
+suggestionVerbosity = symspellpy.verbosity.Verbosity(symspellpy.verbosity.Verbosity.CLOSEST)
 
-#pytesseract.pytesseract.tesseract_cmd = r'C:\Users\josep\AppData\Local\Programs\Tesseract-OCR\tesseract.exe'
+pytesseract.pytesseract.tesseract_cmd = r'C:\Users\josep\AppData\Local\Programs\Tesseract-OCR\tesseract.exe'
 
 sys.path.append(os.getcwd())
 from lib.fast_rcnn.config import cfg, cfg_from_file
@@ -61,12 +61,13 @@ def draw_boxes(img, image_name, boxes, scale):
     img = cv2.resize(img, None, None, fx=1.0 / scale, fy=1.0 / scale, interpolation=cv2.INTER_LINEAR)
     cv2.imwrite(os.path.join("ctpn/data/results", base_name), img)
     crop_image(base_name, 'ctpn/data/results/res_{}.txt'.format(base_name.split('.')[0]))
-    f = open(os.path.join("ctpn/data/resulttext/{}.txt").format(base_name.split('.')[0]), "x")
-    
+    # try:
+    #     f = open(os.path.join("ctpn/data/resulttext/{}.txt").format(base_name.split('.')[0]), "x")
+    # except FileExistsError:
+    #     f = open(os.path.join("ctpn/data/resulttext/{}.txt").format(base_name.split('.')[0]), "w")
     read_image('data/cropped')
     #f.write(pytesseract.image_to_string(os.path.join("data/results", base_name) , lang = 'eng')) # where img is
     # where img is may not work
-    f.close()
 
 
 #reads the cropped images and puts them into txt files in the resulttest folder
@@ -79,10 +80,15 @@ def read_image(folder_path):
                 print(entry.name)
                 img_path = os.path.join(folder_path, entry.name)
                 img = Image.open(img_path)
-                f = open(os.path.join("ctpn/data/resulttext/{}.txt").format(entry.name.split('.')[0]), "x")
-                inputTerm = pytesseract.image_to_string(img)
-                suggestion = symspellpy.LookupCompound(inputTerm, suggestionVerbosity, maxEditDistanceLookup)
+                try:
+                    f = open(os.path.join("ctpn/data/resulttext/{}.txt").format(entry.name.split('.')[0]), "x")
+                except FileExistsError:
+                    f = open(os.path.join("ctpn/data/resulttext/{}.txt").format(entry.name.split('.')[0]), "w")
+                inputTerm = pytesseract.image_to_string(img_path)
+                print(inputTerm)
+                suggestion = symspellpy.SymSpell.lookup_compound(inputTerm,suggestionVerbosity,maxEditDistanceLookup)
                 f.write('{}\n'.format(suggestion))
+                f.close()
                 
 #crops the green boxes of the images
 def crop_image(base_name, file_path):
@@ -91,21 +97,22 @@ def crop_image(base_name, file_path):
     #for loop
     with open(file_path, 'r') as file:
         for line in file:
-            #get each entry
-            # Split the line by comma
-            parts = line.strip().split(',')
-            # Convert parts to integers
-            params_int = [int(part) for part in parts]
-            #crop
-            # Call the function with the converted parameters
-            cropped_image = img.crop(tuple(params_int))
+            if len(line) != 1:
+                #get each entry
+                # Split the line by comma
+                parts = line.strip().split(',')
+                # Convert parts to integers
+                params_int = [int(part) for part in parts]
+                #crop
+                # Call the function with the converted parameters
+                cropped_image = img.crop(tuple(params_int))
 
-            #save
-            filename, extension = os.path.splitext(base_name)  # Splitting filename and extension
-            cropped_filename = f"{filename}_cropped_{count}{extension}"  # Constructing new filename
-            output_path = os.path.join("data/cropped/", cropped_filename)
-            cropped_image.save(output_path)
-            count += 1
+                #save
+                filename, extension = os.path.splitext(base_name)  # Splitting filename and extension
+                cropped_filename = f"{filename}_cropped_{count}{extension}"  # Constructing new filename
+                output_path = os.path.join("data/cropped/", cropped_filename)
+                cropped_image.save(output_path)
+                count += 1
 
 
 if __name__ == '__main__':
