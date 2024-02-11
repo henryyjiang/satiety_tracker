@@ -12,9 +12,9 @@ import tensorflow.compat.v1 as tf
 tf.disable_v2_behavior()
 from tensorflow.python.platform import gfile
 from PIL import Image
-#import pytesseract
+import pytesseract
 
-#pytesseract.pytesseract.tesseract_cmd = r'C:\Users\josep\AppData\Local\Programs\Tesseract-OCR\tesseract.exe'
+pytesseract.pytesseract.tesseract_cmd = r'C:\Users\josep\AppData\Local\Programs\Tesseract-OCR\tesseract.exe'
 
 sys.path.append(os.getcwd())
 from lib.fast_rcnn.config import cfg, cfg_from_file
@@ -112,7 +112,7 @@ if __name__ == '__main__':
     # init session
     config = tf.ConfigProto(allow_soft_placement=True)
     sess = tf.Session(config=config)
-    with gfile.FastGFile('data/ctpn.pb', 'rb') as f:
+    with gfile.FastGFile('ctpn\data\ctpn.pb', 'rb') as f:
         graph_def = tf.GraphDef()
         graph_def.ParseFromString(f.read())
         sess.graph.as_default()
