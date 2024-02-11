@@ -16,7 +16,7 @@ import pytesseract
 import symspellpy
 # some things for symspellpy. can tweak.
 maxEditDistanceLookup = 2
-suggestionVerbosity = symspellpy.Verbosity.Closest
+suggestionVerbosity = symspellpy.Verbosity.CLOSEST
 
 #pytesseract.pytesseract.tesseract_cmd = r'C:\Users\josep\AppData\Local\Programs\Tesseract-OCR\tesseract.exe'
 
@@ -82,7 +82,7 @@ def read_image(folder_path):
                 f = open(os.path.join("ctpn/data/resulttext/{}.txt").format(entry.name.split('.')[0]), "x")
                 inputTerm = pytesseract.image_to_string(img)
                 suggestion = symspellpy.LookupCompound(inputTerm, suggestionVerbosity, maxEditDistanceLookup)
-                f.write(suggestion)
+                f.write('{}\n'.format(suggestion))
                 
 #crops the green boxes of the images
 def crop_image(base_name, file_path):
