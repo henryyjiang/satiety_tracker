@@ -13,6 +13,10 @@ tf.disable_v2_behavior()
 from tensorflow.python.platform import gfile
 from PIL import Image
 import pytesseract
+import symspellpy
+# some things for symspellpy. can tweak.
+maxEditDistanceLookup = 2
+suggestionVerbosity = symspellpy.Verbosity.Closest
 
 pytesseract.pytesseract.tesseract_cmd = r'C:\Users\josep\AppData\Local\Programs\Tesseract-OCR\tesseract.exe'
 
@@ -63,7 +67,7 @@ def draw_boxes(img, image_name, boxes, scale):
     #f.write(pytesseract.image_to_string(os.path.join("data/results", base_name) , lang = 'eng')) # where img is
     # where img is may not work
     f.close()
-    # info = pytesseract.image_to_string('nf1.jpg' , lang = 'eng')
+
 
 def read_image(folder_path):
     with os.scandir(folder_path) as entries:
@@ -75,7 +79,9 @@ def read_image(folder_path):
                 img_path = os.path.join(folder_path, entry.name)
                 img = Image.open(img_path)
                 f = open(os.path.join("data/resulttext/{}.txt").format(entry.name.split('.')[0]), "x")
-                f.write(pytesseract.image_to_string(img))
+                inputTerm = pytesseract.image_to_string(img)
+                suggestion = symspellpy.LookupCompound(inputTerm, suggestionVerbosity, maxEditDistanceLookup)
+                f.write(suggestion)
                 
 
 def crop_image(base_name, file_path):
