@@ -1,15 +1,11 @@
 import re
 import numpy as np
 import pandas as pd
-import pickle
 import cv2
 import tkinter as tk
-import pyglet
 import customtkinter as ck
-import mediapipe as mp
 from PIL import Image, ImageTk
 
-pyglet.font.add_file("font.ttf")
 font = ("Helvetica", 14)
 
 take_video = True
@@ -56,7 +52,7 @@ def config_labels_bg(labels, current):
             labels[i].configure(fg_color=green)
 
 def config_satiety_bg(label, current):
-        if current < 50:
+        if current < 75:
             label.configure(fg_color=red)
         elif current < 100:
             label.configure(fg_color=orange)
@@ -84,7 +80,7 @@ def takePicture():
         #calc_satiety("cap.jpg")
         backToHome()
         print("Picture taken successfully!")
-    take_video=False
+    take_video = False
 
 def backToHome():
     global take_video
@@ -96,27 +92,34 @@ def backToHome():
     entryBox.place(x=130,y=90)
     resultsList.place(x=130, y=120, height=80)
     camButton.configure(command=lambda: placePhotoFrame())
-    camButton.place(x=80,y=550)
+    camButton.place(x=80,y=600)
 
-def placeNutritionFacts():
-    totalsLabel.place(x=160, y=130)
-    calsLabel.place(x=160, y=180)
-    carbsLabel.place(x=160, y=210)
-    proteinLabel.place(x=160, y=240)
-    unsatsLabel.place(x=160, y=270)
-    satsLabel.place(x=160, y=300)
-    polyLabel.place(x=160, y=330)
-    satietyLabel.place(x=150, y=380)
+def placeNutritionFacts(labels, x, y):
+    for item in labels:
+        item.place_forget()
+    totalsLabel.place_forget()
+    totalsLabel.place(x=x, y=y)
+    calsLabel.place(x=x, y=y+50)
+    carbsLabel.place(x=x, y=y+80)
+    proteinLabel.place(x=x, y=y+110)
+    unsatsLabel.place(x=x, y=y+140)
+    satsLabel.place(x=x, y=y+170)
+    polyLabel.place(x=x,y=y+200)
+    satietyLabel.place(x=x-10,y=y+250)
 
-def configureNutritionFacts(x):
-    totalsLabel.place(x=x)
-    calsLabel.place(x=x)
-    carbsLabel.place(x=x)
-    proteinLabel.place(x=x)
-    unsatsLabel.place(x=x)
-    satsLabel.place(x=x)
-    polyLabel.place(x=x)
-    satietyLabel.place(x=x-10)
+def centerNutritionFacts(labels, y):
+    for item in labels:
+        item.place_forget()
+    totalsLabel.place_forget()
+    totalsLabel.place(relx=0.5,y=y, anchor="center")
+    calsLabel.place(relx=0.5,y=y+50, anchor="center")
+    carbsLabel.place(relx=0.5,y=y+80, anchor="center")
+    proteinLabel.place(relx=0.5,y=y+110, anchor="center")
+    unsatsLabel.place(relx=0.5,y=y+140, anchor="center")
+    satsLabel.place(relx=0.5,y=y+170, anchor="center")
+    polyLabel.place(relx=0.5,y=y+200, anchor="center")
+    satietyLabel.place(relx=0.5,y=y+250, anchor="center")
+
 def placeAfterFrame(addCals, addCarbs, addProt, addSat, addUnsat, addPoly, addSatiety, foodName=''):
     global cals, carbs, protein, satFats, unsatFats, polyFats, satiety
     global tempCals, tempCarbs, tempProtein, tempSatFats, tempUnsatFats, tempPolyFats, tempSatiety
@@ -134,7 +137,7 @@ def placeAfterFrame(addCals, addCarbs, addProt, addSat, addUnsat, addPoly, addSa
     update_results(data)
     entryBox.delete(0, tk.END)
 
-    configureNutritionFacts(20)
+    placeNutritionFacts(labels, x=20,y=130)
     totalsLabel.place_forget()
     entryBox.place_forget()
     resultsList.place_forget()
@@ -158,7 +161,7 @@ def placeAfterFrame(addCals, addCarbs, addProt, addSat, addUnsat, addPoly, addSa
     eatButton.place(x=280, y=600)
     tempCurrent = [cals+tempCals, carbs+tempCarbs, protein+tempProtein, satFats+tempSatFats, unsatFats+tempUnsatFats, polyFats+tempPolyFats]
     config_labels_bg(afterlabels, tempCurrent)
-    config_satiety_bg(afterSatietyLabel, satiety+tempSatiety)
+    config_satiety_bg(afterSatietyLabel, (satiety+(tempSatiety*addCals))*200/(cals+addCals))
 
     if foodName != '':
         foodLabel.configure(text=foodName.title())
@@ -171,7 +174,7 @@ def placeAfterFrame(addCals, addCarbs, addProt, addSat, addUnsat, addPoly, addSa
     afterUnsatsLabel.configure(text='Unsaturated Fat: ' + str(format((tempUnsatFats+unsatFats), ".2f")) + " g")
     afterSatsLabel.configure(text='Saturated Fat: ' + str(format((tempSatFats+satFats), ".2f")) + " g")
     afterPolyLabel.configure(text='Polysaturated Fat: ' + str(format((tempPolyFats+polyFats), ".2f")) + " g")
-    afterSatietyLabel.configure(text='Satiety Index Score: ' + str(format((tempSatiety+satiety), ".2f")))
+    afterSatietyLabel.configure(text='Satiety Index Score: ' + str(format(((satiety+(tempSatiety*addCals))*200/(cals+addCals)), ".2f")))
 
 def eat():
     global tempCals, tempCarbs, tempProtein, tempSatFats, tempUnsatFats, tempPolyFats, tempSatiety
@@ -191,7 +194,7 @@ def eat():
     afterPolyLabel.place_forget()
     afterSatietyLabel.place_forget()
     totalsLabel.place(x=20, y=130)
-    configureNutritionFacts(160)
+    centerNutritionFacts(labels, 130)
 
     backToHome()
 
@@ -212,7 +215,7 @@ def eatBack():
     afterPolyLabel.place_forget()
     afterSatietyLabel.place_forget()
     totalsLabel.place(x=20, y=130)
-    configureNutritionFacts(160)
+    centerNutritionFacts(labels, 130)
 
     backToHome()
 
@@ -237,7 +240,7 @@ def update_totals(addCals, addCarbs, addProt, addSat, addUnsat, addPoly, addSati
     satFats += addSat
     unsatFats += addUnsat
     polyFats += addPoly
-    satiety += addSatiety
+    satiety += addSatiety*addCals
 
     calsLabel.configure(text='Calories: ' + str(cals))
     carbsLabel.configure(text='Carbohydrates: ' + str(format(carbs, ".2f"))+" g")
@@ -245,10 +248,10 @@ def update_totals(addCals, addCarbs, addProt, addSat, addUnsat, addPoly, addSati
     unsatsLabel.configure(text='Unsaturated Fat: ' + str(format(unsatFats, ".2f"))+" g")
     satsLabel.configure(text='Saturated Fat: ' + str(format(satFats, ".2f"))+" g")
     polyLabel.configure(text='Polyunsaturated Fat: ' + str(format(polyFats, ".2f"))+" g")
-    satietyLabel.configure(text='Satiety Index Score: ' + str(format(satiety, ".2f")))
+    satietyLabel.configure(text='Satiety Index Score: ' + str(format(satiety*200/cals, ".2f")))
     current = [cals, carbs, protein, satFats, unsatFats, polyFats]
     config_labels_bg(labels, current)
-    config_satiety_bg(satietyLabel, satiety)
+    config_satiety_bg(satietyLabel, satiety/cals*200)
 
 def update_results(data):
     resultsList.delete(0, tk.END)
@@ -274,7 +277,8 @@ def get_nut_facts(event):
         addSatFats = float(re.sub(r'[^0-9.]', '', str(selected_row['saturated_fatty_acids'])))
         addUnsatFats = float(re.sub(r'[^0-9.]', '', str(selected_row['monounsaturated_fatty_acids'])))
         addPolyFats = float(re.sub(r'[^0-9.]', '', str(selected_row['polyunsaturated_fatty_acids'])))
-        placeAfterFrame(addCals, addCarbs, addProtein, addSatFats, addUnsatFats, addPolyFats, 0, foodName)
+        addSatiety = float(str(selected_row['Satiety Index']))
+        placeAfterFrame(addCals, addCarbs, addProtein, addSatFats, addUnsatFats, addPolyFats, addSatiety, foodName)
 
 def check(event):
     typed = entryBox.get()
@@ -309,6 +313,9 @@ window.title("bruh")
 ck.set_appearance_mode("dark")
 ck.set_default_color_theme("dark-blue")
 
+tk.font.nametofont("TkDefaultFont").configure(family="YourCustomFontFamily", size=12)
+window.option_add("*Font", "YourCustomFontFamily 12")
+
 cap = cv2.VideoCapture(0)
 df = pd.read_csv('fdc-satnut.csv')
 
@@ -330,7 +337,6 @@ unsatsLabel = ck.CTkLabel(nutritionFrame, text='Unsaturated Fat: '+str(unsatFats
 satsLabel = ck.CTkLabel(nutritionFrame, text='Saturated Fat: '+str(satFats)+" g", height=30, width=160, font=font, text_color="black",corner_radius=8)
 polyLabel = ck.CTkLabel(nutritionFrame, text='Polyunsaturated Fat: '+str(polyFats)+" g", height=30, width=160, font=font, text_color="black",corner_radius=8)
 satietyLabel = ck.CTkLabel(nutritionFrame, text='Satiety Index Score: '+str(satiety), height=30, width=160, font=(font,  17, "bold"), text_color="black",corner_radius=8)
-placeNutritionFacts()
 nutritionFrame.place(x=0,y=90)
 
 labels = []
@@ -340,6 +346,8 @@ labels.append(proteinLabel)
 labels.append(satsLabel)
 labels.append(unsatsLabel)
 labels.append(polyLabel)
+labels.append(satietyLabel)
+centerNutritionFacts(labels, 130)
 
 #searchbar and dropdown
 entryBox = ck.CTkEntry(homeFrame, width=225, font=font,corner_radius=8, placeholder_text="Search foods here!")
@@ -355,7 +363,7 @@ entryBox.bind("<KeyRelease>", check)
 backButton = ck.CTkButton(window, text='Back to Home', height=40, width=160, font=font, text_color="black", corner_radius=8, fg_color="#BCF4F5", command=lambda: backToHome())
 main = tk.Label(nutritionFrame)
 camButton = ck.CTkButton(window, text="Take a Pic!", height=80, width=320, font=(font, 30), text_color="black", corner_radius=8, fg_color="#BCF4F5", command=lambda: placePhotoFrame())
-camButton.place(x=80,y=550)
+camButton.place(x=80,y=600)
 
 #after frame
 foodLabel = ck.CTkLabel(nutritionFrame, text='Your Food:', height=40, width=160, font=(font, 25, "bold"), text_color="black", corner_radius=8,)
@@ -377,6 +385,7 @@ afterlabels.append(afterProteinLabel)
 afterlabels.append(afterSatsLabel)
 afterlabels.append(afterUnsatsLabel)
 afterlabels.append(afterPolyLabel)
+afterlabels.append(afterSatietyLabel)
 
 eatBackButton = ck.CTkButton(window, text='Back', height=40, width=160, font=font, text_color="black", fg_color="#BCF4F5", corner_radius=8, command=lambda: eatBack())
 eatButton = ck.CTkButton(window, text="Eat!", height=40, width=160, font=font, text_color="black", fg_color="#BCF4F5", corner_radius=8, command=lambda: eat())
