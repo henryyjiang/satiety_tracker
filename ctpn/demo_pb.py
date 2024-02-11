@@ -14,7 +14,7 @@ from tensorflow.python.platform import gfile
 from PIL import Image
 import pytesseract
 
-pytesseract.pytesseract.tesseract_cmd = r'C:\Users\josep\AppData\Local\Programs\Tesseract-OCR\tesseract.exe'
+#pytesseract.pytesseract.tesseract_cmd = r'C:\Users\josep\AppData\Local\Programs\Tesseract-OCR\tesseract.exe'
 
 sys.path.append(os.getcwd())
 from lib.fast_rcnn.config import cfg, cfg_from_file
@@ -33,7 +33,7 @@ def resize_im(im, scale, max_scale=None):
 
 def draw_boxes(img, image_name, boxes, scale):
     base_name = os.path.basename(image_name)
-    with open('data/results/' + 'res_{}.txt'.format(base_name.split('.')[0]), 'w') as f:
+    with open('ctpn/data/results/' + 'res_{}.txt'.format(base_name.split('.')[0]), 'w') as f:
         for box in boxes:
             if np.linalg.norm(box[0] - box[1]) < 5 or np.linalg.norm(box[3] - box[0]) < 5:
                 continue
@@ -55,9 +55,9 @@ def draw_boxes(img, image_name, boxes, scale):
             f.write(line)
 
     img = cv2.resize(img, None, None, fx=1.0 / scale, fy=1.0 / scale, interpolation=cv2.INTER_LINEAR)
-    cv2.imwrite(os.path.join("data/results", base_name), img)
-    crop_image(base_name, 'data/results/res_{}.txt'.format(base_name.split('.')[0]))
-    f = open(os.path.join("data/resulttext/{}.txt").format(base_name.split('.')[0]), "x")
+    cv2.imwrite(os.path.join("ctpn/data/results", base_name), img)
+    crop_image(base_name, 'ctpn/data/results/res_{}.txt'.format(base_name.split('.')[0]))
+    f = open(os.path.join("ctpn/data/resulttext/{}.txt").format(base_name.split('.')[0]), "x")
     
     read_image('data/cropped')
     #f.write(pytesseract.image_to_string(os.path.join("data/results", base_name) , lang = 'eng')) # where img is
@@ -65,6 +65,7 @@ def draw_boxes(img, image_name, boxes, scale):
     f.close()
     # info = pytesseract.image_to_string('nf1.jpg' , lang = 'eng')
 
+#reads the cropped images and puts them into txt files in the resulttest folder
 def read_image(folder_path):
     with os.scandir(folder_path) as entries:
         for entry in entries:
@@ -74,10 +75,10 @@ def read_image(folder_path):
                 print(entry.name)
                 img_path = os.path.join(folder_path, entry.name)
                 img = Image.open(img_path)
-                f = open(os.path.join("data/resulttext/{}.txt").format(entry.name.split('.')[0]), "x")
+                f = open(os.path.join("ctpn/data/resulttext/{}.txt").format(entry.name.split('.')[0]), "x")
                 f.write(pytesseract.image_to_string(img))
                 
-
+#crops the green boxes of the images
 def crop_image(base_name, file_path):
     img = Image.open('data/demo/{}'.format(base_name))
     count = 0
@@ -103,16 +104,16 @@ def crop_image(base_name, file_path):
 
 if __name__ == '__main__':
 
-    if os.path.exists("data/results/"):
-        shutil.rmtree("data/results/")
-    os.makedirs("data/results/")
+    if os.path.exists("ctpn/data/results/"):
+        shutil.rmtree("ctpn/data/results/")
+    os.makedirs("ctpn/data/results/")
 
     cfg_from_file('ctpn/text.yml')
 
     # init session
     config = tf.ConfigProto(allow_soft_placement=True)
     sess = tf.Session(config=config)
-    with gfile.FastGFile('ctpn\data\ctpn.pb', 'rb') as f:
+    with gfile.FastGFile('ctpn/data/ctpn.pb', 'rb') as f:
         graph_def = tf.GraphDef()
         graph_def.ParseFromString(f.read())
         sess.graph.as_default()
